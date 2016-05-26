@@ -4,6 +4,7 @@ project.mainClass = "net.javajk.jk.Main";
 
 
 plugin.apply("build");
+//plugin.apply("idea")
 
 task.add("install", function(param){
     task.run("build");
@@ -40,6 +41,15 @@ task.add("install", function(param){
 });
 
 
+task.add("test1", function(param){
+    os.exec(["sudo", "uname", "-a"])
+})
+
+task.add("test2", function(param){
+    print(task.run("test1", 1,2,3,4,5,5))
+})
+
+
 //dep.add('org.apache.logging.log4j:log4j-core:jar:2.5')
-//dep.add('args4j:args4j:jar:2.33')
+dep.add('com.google.code.gson:gson:2.5')
 

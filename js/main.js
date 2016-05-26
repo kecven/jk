@@ -42,9 +42,9 @@ var args = Java.type("net.javajk.jk.Main").args;
 
     global.os      =           Os.getInstance();
     global.task    =           Task.getInstance();
-    global.rep     =           new Repositories();
-    global.dep     =           new Dependencies(global.rep);
-    global.plugin  =           new Plugin();
+    global.rep     =           Repositories.getInstance();
+    global.dep     =           Dependencies.getInstance();
+    global.plugin  =           Plugin.getInstance();
 
 })();
 

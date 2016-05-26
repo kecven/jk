@@ -1,14 +1,13 @@
 package net.javajk.jk.js;
 
 import net.javajk.jk.Main;
+import net.javajk.jk.js.optional.DefaultTask;
+import net.javajk.jk.js.optional.TaskAction;
 
-import javax.script.Invocable;
 import javax.script.ScriptException;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.function.Predicate;
 
 
 public class Task {
@@ -29,12 +28,12 @@ public class Task {
     private Task() {
         addTask("null", "Nothing doing", (e)->{
             DefaultTask.nullTask();
-            return true;
+            return null;
         });
 
         addTask("help", "This help", (e)->{
             DefaultTask.help(tasks);
-            return true;
+            return null;
         });
 
         addTask("init", "Create default directory for your project", (e)->{
@@ -43,7 +42,7 @@ public class Task {
             } catch (IOException e1) {
                 e1.printStackTrace();
             }
-            return true;
+            return null;
         });
 
         addTask("clearLib", "Delete all download libs and download need library from Ethernet", (e)->{
@@ -52,7 +51,7 @@ public class Task {
             } catch (IOException e1) {
                 e1.printStackTrace();
             }
-            return true;
+            return null;
         });
 
     }
@@ -63,7 +62,7 @@ public class Task {
     public class OneTask{
         public String name;
         public String description;
-        public Predicate<Object> task;
+        public TaskAction task;
     }
 
     private final Map<String, OneTask> tasks = new LinkedHashMap<>();
@@ -82,7 +81,7 @@ public class Task {
      * @param description
      * @param task
      */
-    public void addTask(String name, String description, Predicate<Object> task){
+    public void addTask(String name, String description, TaskAction task){
         OneTask oneTask = new OneTask();
         oneTask.description = description;
         oneTask.name = name;
@@ -97,7 +96,7 @@ public class Task {
      * @param description
      * @param task
      */
-    public void add(String name, String description, Predicate<Object> task){
+    public void add(String name, String description, TaskAction task){
         // task already add
         if (tasks.containsKey(name)) {
             throw new RuntimeException("task `" + name + "` already add.");
@@ -106,11 +105,11 @@ public class Task {
         }
     }
 
-    public void add(String name, Predicate<Object> task, String description){
+    public void add(String name, TaskAction task, String description){
         add(name, description, task);
     }
 
-    public void add(String name, Predicate<Object> task){
+    public void add(String name, TaskAction task){
         String description = "Not defined";
         add(name, description, task);
     }
@@ -135,9 +134,13 @@ public class Task {
 
 
         //    Invocable invocable = (Invocable) Main.scriptEngine;
-            Object result = tasks.get(args[0]).task.test(args);
+            Object result = tasks.get(args[0]).task.run(args);
             //Object result = invocable.invokeFunction("tast.getTask(" + args[0] + ").task", args);
-            System.out.println(":" + args[0]);
+           // System.out.println(":" + args[0]);
+
+            char simbolESC = 0x1b;
+            //https://habrahabr.ru/post/94647/
+            System.out.println(simbolESC + "[32m" + ":" + args[0] + simbolESC + "[0m");
             return result;
             /*
             var result = tasks[args[0]].task(args)	//exec task

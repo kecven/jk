@@ -20,35 +20,42 @@ var build = {
 
 task.add("compile", "Compile all java class from project", function () {
 
-    os.delete(project.folder.compileClasses);
-    os.mkdir(project.folder.compileClasses);
+    os.clearDir(project.folder.compileClasses);
 
     var javaFile;
     var result;
 
-    var javacString = new java.lang.StringBuilder();
-    javacString.append("javac ");
+    var javac = new Array();
+
+   // var javacString = new java.lang.StringBuilder();
+    javac.push("javac");
     for (var option in build.javac.options){
-        javacString.append(option + ":" + build.javac.options[option] + " ");
+        javac.push(option + ":" + build.javac.options[option]);
     }
-    javacString.append("-sourcepath " + project.folder.code.src + " -d " + project.folder.compileClasses + " ");
-    javacString.append("-classpath " + project.folder.compileClasses);
-    if (dep.getAll().length > 0){
-        for (var i = 0; i < dep.getAll().length; i++){
-            javacString.append(":");
-            javacString.append(dep.getAll()[i]);
-        }
+    javac.push("-sourcepath");
+    javac.push(project.folder.code.src);
+    javac.push("-d");
+    javac.push(project.folder.compileClasses);
+    javac.push("-classpath");
+
+    var classpath = new java.lang.StringBuilder();
+    classpath.append(project.folder.compileClasses);
+
+    for (var i = 0; i < dep.getAll().length; i++){
+        classpath.append(":");
+        classpath.append(dep.getAll()[i]);
     }
-    javacString.append(" ");
 
-    javacString = javacString.toString();
+    javac.push(classpath.toString());
 
+//    javacString = javacString.toString();
+/*
     if (project.mainClass != undefined){
         javaFile = project.folder.code.src + "/" + project.mainClass.replace(/\./g, "/") + ".java"
-
-        result = os.exec(javacString + javaFile);
+        javac.add(javaFile);
+        result = os.exec(javac);
     }
-
+*/
 
     var allJavaClassFile = os.walkOnFile(project.folder.code.src).files;
     for (var i = 0; i < allJavaClassFile.length; i++){
@@ -67,7 +74,9 @@ task.add("compile", "Compile all java class from project", function () {
             }
         }
 
-        result = os.exec(javacString + javaFile);
+        javac.push(javaFile);
+
+//        result = os.exec(javacString + javaFile);
 
         /*
          if (result.exitVal != 0){
@@ -75,41 +84,54 @@ task.add("compile", "Compile all java class from project", function () {
          }
          */
     }
+    result = os.exec(javac);
+
     return result;
 });
 
 task.add("run", "Run project", function(){
     var result = task.run("compile");
+    if (result.exitVal != 0){
+        print("Not all compile");
+        return result;
+    }
     var mainClass = project.mainClass;
 
     var args = '';
     for (var i = 1; i < arguments.length; i++){
         args += " " + arguments[i];
     }
-    var javaString = new java.lang.StringBuilder();
+    var javaCmd = new Array();
 
-    javaString.append("java ");
+    javaCmd.push("java");
+
+
     for (var option in build.java.options){
-        javaString.append(option + ":" + build.java.options[option] + " ");
+        javaCmd.push(option + ":" + build.java.options[option]);
     }
-    javaString.append("-classpath " + project.folder.compileClasses);
+
+
+    javaCmd.push("-classpath");
+    var classpath = new java.lang.StringBuilder();
+    classpath.append(project.folder.compileClasses);
     if (dep.getAll().length > 0){
         for (var i = 0; i < dep.getAll().length; i++){
-            javaString.append(":");
-            javaString.append(dep.getAll()[i]);
+            classpath.append(":");
+            classpath.append(dep.getAll()[i]);
         }
     }
-    javaString.append(" ");
+    javaCmd.push(classpath.toString());
 
-    javaString = javaString.toString();
+    javaCmd.push(mainClass)
+    javaCmd.push(args)
 
-    result = os.exec(javaString + mainClass + args);
+    result = os.exec(javaCmd);
 })
 
 
 task.add("build", "Build project without library", function(){
     var result = task.run("compile");
-    if (result != true){
+    if (result.exitVal != 0){
         print("Not all compile");
         return result;
     }
@@ -143,8 +165,7 @@ task.add("build", "Build project without library", function(){
 
 task.add("jar", "Build project with library", function(){
     var result = task.run("compile");
-    os.delete(project.folder.tmp);
-    os.mkdir(project.folder.tmp);
+    os.clearDir(project.folder.tmp);
     if (result != true){
         print("Not all compile");
         return result;

@@ -21,7 +21,20 @@ public class Dependencies {
     private Repositories repositories;
 
 
-    public Dependencies(Repositories repositories) {
+    private static Dependencies instance = null;
+
+    public static Dependencies getInstance(){
+        if (instance == null){
+            synchronized (Dependencies.class){
+                if (instance == null){
+                    instance = new Dependencies(Repositories.getInstance());
+                }
+            }
+        }
+        return instance;
+    }
+
+    private Dependencies(Repositories repositories) {
         this.repositories = repositories;
     }
 
@@ -38,8 +51,6 @@ public class Dependencies {
             add(dep[0], dep[1], dep[3]);
         } else if (dep.length == 3){
             add(dep[0], dep[1], dep[2]);
-        } else if (dep.length == 2){
-            add(dep[0], dep[1], "last");
         } else {
             throw new RuntimeException("Unknown dependency. " + name);
         }

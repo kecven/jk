@@ -1,10 +1,13 @@
 package net.javajk.jk;
 
 import net.javajk.jk.js.Os;
+import org.xml.sax.SAXException;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
@@ -20,7 +23,8 @@ public class Main {
     private static final ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
     public static final ScriptEngine scriptEngine = scriptEngineManager.getEngineByName("nashorn");
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
+
 
         long timeStart = System.currentTimeMillis();
 
@@ -43,7 +47,10 @@ public class Main {
         }
 
         double totalTime = (System.currentTimeMillis() - timeStart) / 1000.0;
-        System.out.println("Total time: " + totalTime + " secs");
+
+        char simbolESC = 0x1b;
+        //https://habrahabr.ru/post/94647/
+        System.out.println(simbolESC + "[1m" + "Total time: " + totalTime + " secs" + simbolESC + "[0m");
     }
 
     /**

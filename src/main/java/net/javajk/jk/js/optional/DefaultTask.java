@@ -1,7 +1,9 @@
-package net.javajk.jk.js;
+package net.javajk.jk.js.optional;
 
 import net.javajk.jk.Const;
 import net.javajk.jk.Main;
+import net.javajk.jk.js.Os;
+import net.javajk.jk.js.Task;
 
 import java.io.File;
 import java.io.IOException;

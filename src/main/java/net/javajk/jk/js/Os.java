@@ -98,22 +98,32 @@ public class Os {
         return result;
     }
 
+    public boolean existsFile(String file){
+        return new File(file).exists();
+    }
+
     public void delete(String src) throws IOException {
         File file = new java.io.File(src);
         if (file.isFile()) {
             java.nio.file.Files.deleteIfExists(file.toPath());
         } else if (file.isDirectory()) {
-            Map<String, List<String>> wof = walkOnFile(src);
-            //Удаляем все файлы
-            for (int i = 0; i < wof.get("files").size(); i++){
-                java.nio.file.Files.deleteIfExists(new File(wof.get("files").get(i)).toPath());
-            }
-            //Удаляем все папки, в обратном порядке.
-            //В общратном, что бы в начале вдалились дочерние папки, а потом корневые, что бы удаляемые папки были пустыми
-            for (int i = wof.get("folders").size() - 1; i >= 0; i--){
-                java.nio.file.Files.deleteIfExists(new File(wof.get("folders").get(i)).toPath());
-            }
+            clearDir(src);
+            java.nio.file.Files.deleteIfExists(file.toPath());
         }
+    }
+    public void clearDir(String path) throws IOException {
+        Map<String, List<String>> wof = walkOnFile(path);
+        //Удаляем все файлы
+        for (int i = 0; i < wof.get("files").size(); i++){
+            java.nio.file.Files.deleteIfExists(new File(wof.get("files").get(i)).toPath());
+        }
+        //Удаляем все папки, в обратном порядке.
+        //В общратном, что бы в начале вдалились дочерние папки, а потом корневые, что бы удаляемые папки были пустыми
+        //В цикле for(второй параметр). Так и должно быть, последнюю папку - корень, не удаляем.
+        for (int i = wof.get("folders").size() - 1; i > 0; i--){
+            java.nio.file.Files.deleteIfExists(new File(wof.get("folders").get(i)).toPath());
+        }
+
     }
 
 
@@ -125,9 +135,7 @@ public class Os {
         return exec(Arrays.asList(cmd));
     }
 
-    public Map<String, Object> exec(List<String> cmd) throws IOException, InterruptedException {
-        List<String> listCmd = cmd;
-
+    public Map<String, Object> exec(List<String> listCmd) throws IOException, InterruptedException {
         // указываем в конструкторе ProcessBuilder,
         // что нужно запустить программу с произвольным количеством параметров
         ProcessBuilder procBuilder = new ProcessBuilder(listCmd);
@@ -141,16 +149,7 @@ public class Os {
 
         // читаем стандартный поток вывода
         // и выводим на экран
-        InputStream stdout = process.getInputStream();
-        InputStreamReader isrStdout = new java.io.InputStreamReader(stdout);
-        BufferedReader brStdout = new java.io.BufferedReader(isrStdout);
-
-        StringBuilder sbOut = new StringBuilder();
-        String line;
-        while((line = brStdout.readLine()) != null) {
-            System.out.println(line);
-            sbOut.append(line + "\n");
-        }
+        String out = readStream(process.getInputStream());
 
         // ждем пока завершится вызванная программа
         // и сохраняем код, с которым она завершилась в
@@ -158,10 +157,63 @@ public class Os {
         int exitVal = process.waitFor();
 
         Map<String, Object> result = new HashMap<>();
-        result.put("out", sbOut.toString());
+        result.put("out", out);
         result.put("exitVal", exitVal);
 
         return result;
+    }
+
+
+    public Map<String, Object> run(String cmd) throws IOException, InterruptedException {
+        return run(cmd.split(" "));
+    }
+
+    public Map<String, Object> run(String[] cmd) throws IOException, InterruptedException {
+        return run(Arrays.asList(cmd));
+    }
+
+    public Map<String, Object> run(List<String> listCmd) throws IOException, InterruptedException {
+        // указываем в конструкторе ProcessBuilder,
+        // что нужно запустить программу с произвольным количеством параметров
+        ProcessBuilder procBuilder = new ProcessBuilder(listCmd);
+
+        // перенаправляем стандартный поток ошибок на
+        // стандартный вывод
+        procBuilder.redirectErrorStream(false);
+
+        // запуск программы
+        Process process = procBuilder.start();
+
+        // читаем стандартный поток вывода
+        // и выводим на экран
+        String out = readStream(process.getInputStream());
+        String err = readStream(process.getErrorStream());
+
+
+        // ждем пока завершится вызванная программа
+        // и сохраняем код, с которым она завершилась в
+        // в переменную exitVal
+        int exitVal = process.waitFor();
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("out", out);
+        result.put("err", err);
+        result.put("exitVal", exitVal);
+
+        return result;
+    }
+
+    private String readStream(InputStream inputStream) throws IOException {
+
+        InputStreamReader isrStdout = new java.io.InputStreamReader(inputStream);
+        BufferedReader brStdout = new java.io.BufferedReader(isrStdout);
+
+        StringBuilder sbOut = new StringBuilder();
+        String line;
+        while((line = brStdout.readLine()) != null) {
+            sbOut.append(line + "\n");
+        }
+        return sbOut.toString();
     }
 
     public void unZip(String fileName, String folderName) throws IOException {

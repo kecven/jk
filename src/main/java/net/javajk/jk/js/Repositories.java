@@ -7,7 +7,20 @@ import java.util.*;
  */
 public class Repositories {
 
-    public Repositories() {
+    private static Repositories instance;
+
+    public static Repositories getInstance(){
+        if (instance == null){
+            synchronized (Repositories.class){
+                if (instance == null){
+                    instance = new Repositories();
+                }
+            }
+        }
+        return instance;
+    }
+
+    private Repositories() {
         add("http://central.maven.org/maven2/");
     }
 
@@ -29,7 +42,7 @@ public class Repositories {
             return reps;
         }
 
-        List<Map.Entry<String, Integer>> list = new ArrayList(repositories.entrySet());
+        List<Map.Entry<String, Integer>> list = new ArrayList<Map.Entry<String, Integer>>(repositories.entrySet());
         Collections.sort(list, (a, b) -> b.getValue() - a.getValue());
 
         List<String> result = new ArrayList<>(list.size());

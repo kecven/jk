@@ -12,6 +12,20 @@ import java.util.Set;
 public class Plugin {
     private Set<String> plugins = new HashSet<>();
 
+
+    private static Plugin instance = null;
+
+    public static Plugin getInstance(){
+        if (instance == null){
+            synchronized (Plugin.class){
+                if (instance == null){
+                    instance = new Plugin();
+                }
+            }
+        }
+        return instance;
+    }
+
     public void apply(String name) throws ScriptException, NoSuchMethodException {
         runPlugin(name);
     }
@@ -26,7 +40,7 @@ public class Plugin {
         if (plugins.contains(name)){
             return;
         }
-        File file = new File(Main.mainFolder + "/js/plugins/" + name + "/" + name + ".js");
+        File file = new File(Main.mainFolder + "/js/plugins/" + name + "/main.js");
 
         if (file.exists()){
 //            Main.scriptEngine.eval("load('" + file.getAbsolutePath() + "');");
